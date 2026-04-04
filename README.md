@@ -98,6 +98,85 @@ If you **already have a settings.json**, add only the new matcher inside your ex
 
 ---
 
+## Slash commands (optional)
+
+Two slash commands are available for manual control. Copy them into your project's `.claude/commands/` folder:
+
+```bash
+mkdir -p .claude/commands
+
+# /noconvert — toggle conversion on/off
+curl -sSL https://raw.githubusercontent.com/sunlesshalo/claude-code-md-hook/main/commands/noconvert.md \
+  -o .claude/commands/noconvert.md
+
+# /index — manually cache and index any file
+curl -sSL https://raw.githubusercontent.com/sunlesshalo/claude-code-md-hook/main/commands/index.md \
+  -o .claude/commands/index.md
+```
+
+### `/noconvert` — toggle conversion for the current session
+
+Use this when your PDF contains diagrams, charts, or visual layouts that Claude needs to see. Toggling off lets native Read() handle the file with full vision rendering.
+
+```
+/noconvert
+→ md-convert hook is now OFF — Claude Code will read files natively (including PDF vision rendering).
+
+/noconvert
+→ md-convert hook is now ON — PDFs and documents will be converted to markdown.
+```
+
+**Note:** Toggling conversion off does not disable large file indexing. If you read a large `.md` file while conversion is off, it will still be intercepted and indexed.
+
+**Example workflow — visual PDF:**
+```
+# You have an architecture diagram as PDF
+/noconvert          ← turn off conversion
+Read diagram.pdf    ← Claude sees the full visual content
+/noconvert          ← turn conversion back on
+```
+
+---
+
+### `/index` — manually cache and index a file
+
+Use this after reading a document natively (conversion off) when you want to reference specific sections later without re-reading the whole thing.
+
+```
+/index path/to/document.pdf
+```
+
+The command:
+1. Runs markitdown on the file (or uses the existing cache if fresh)
+2. Extracts all headings with line numbers
+3. Shows you the index
+4. Tells you the cache path so you can read sections with `offset` and `limit`
+
+**Example output:**
+```
+L1    # Project Proposal
+L12   ## Background
+L34   ## Scope of Work
+L67   ## Timeline
+L89   ## Pricing
+L104  ## Terms
+
+Cached at: docs/.cache/proposal.pdf.md
+Use Read with offset and limit to fetch sections by line number.
+```
+
+**Example workflow — large document:**
+```
+# You have a 40-page contract
+/noconvert                          ← off: read natively to see any visual elements
+Read contract.pdf                   ← Claude gets the full picture once
+/noconvert                          ← back on
+/index contract.pdf                 ← build the index
+Read contract.pdf.md offset=89      ← fetch only the Pricing section
+```
+
+---
+
 ## How it works
 
 ### Document conversion
