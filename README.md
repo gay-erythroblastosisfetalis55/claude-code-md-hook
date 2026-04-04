@@ -2,13 +2,30 @@
 
 A Claude Code hook that automatically handles two of the biggest token waste sources:
 
-1. **Document conversion** — PDFs, Word docs, spreadsheets, and other files are converted to markdown before Claude reads them. A raw PDF can use 10–20x more tokens than its markdown equivalent.
+1. **Document conversion** — PDFs, Word docs, spreadsheets, and other files are converted to markdown before Claude reads them. Without this hook, Read() sends PDFs as rendered page images (multimodal), not just text — every page costs vision tokens on top of text extraction. The hook replaces that with a single text-only markdown read.
 
 2. **Large file indexing** — Markdown files over 300 lines are intercepted and replaced with a structural index (headings + line numbers). Claude reads only the relevant section instead of the whole file.
 
 Both behaviors are silent, cached, and require zero changes to your workflow.
 
 Supported formats for conversion: `.pdf` `.docx` `.xlsx` `.pptx` `.html` `.htm`
+
+---
+
+## Why PDFs specifically
+
+When Claude Code's native Read() tool opens a PDF, it sends the content two ways: extracted text **and** each page rendered as a full-size image. That's multimodal — vision tokens for every page, plus text tokens.
+
+We measured this on a 2-page offer document (168 KB):
+
+| Method | Tokens (approx) |
+|---|---|
+| Native Read() | ~3,500–5,000 (text + 2 page images) |
+| Hook (markitdown → markdown) | ~1,350 (text only) |
+
+**~2.5–3.7x savings on a 2-page doc.** Savings scale with page count — a 10-page PDF carries 10 vision renders.
+
+For DOCX, XLSX, and PPTX, Read() cannot open those natively at all. The hook converts them to readable markdown.
 
 ---
 
