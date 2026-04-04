@@ -1,10 +1,14 @@
 # claude-code-md-hook
 
-A Claude Code hook that automatically converts PDFs, Word docs, spreadsheets, and other documents to markdown before Claude reads them.
+A Claude Code hook that automatically handles two of the biggest token waste sources:
 
-**Why?** A raw PDF can use 10–20x more tokens than its markdown equivalent. This hook intercepts the read, converts silently, caches the result, and redirects Claude — with zero changes to your workflow.
+1. **Document conversion** — PDFs, Word docs, spreadsheets, and other files are converted to markdown before Claude reads them. A raw PDF can use 10–20x more tokens than its markdown equivalent.
 
-Supported formats: `.pdf` `.docx` `.xlsx` `.pptx` `.html` `.htm`
+2. **Large file indexing** — Markdown files over 300 lines are intercepted and replaced with a structural index (headings + line numbers). Claude reads only the relevant section instead of the whole file.
+
+Both behaviors are silent, cached, and require zero changes to your workflow.
+
+Supported formats for conversion: `.pdf` `.docx` `.xlsx` `.pptx` `.html` `.htm`
 
 ---
 
@@ -29,8 +33,6 @@ That's it. Restart Claude Code and the hook is active.
 
 ### Option 2 — Manual (if you want to inspect everything first)
 
-If you already have a `.claude/hooks.json` with other hooks configured, or you just prefer to know exactly what's being added, do it manually:
-
 **Step 1** — Copy `md-convert.sh` into your project's `scripts/` folder:
 
 ```bash
@@ -39,9 +41,9 @@ curl -sSL https://raw.githubusercontent.com/sunlesshalo/claude-code-md-hook/main
 chmod +x scripts/md-convert.sh
 ```
 
-**Step 2** — Add the hook to `.claude/hooks.json`.
+**Step 2** — Add the hook to `.claude/settings.json`.
 
-If you **don't have a hooks.json yet**, create `.claude/hooks.json` with this content:
+If you **don't have a settings.json yet**, create `.claude/settings.json` with this content:
 
 ```json
 {
@@ -61,7 +63,7 @@ If you **don't have a hooks.json yet**, create `.claude/hooks.json` with this co
 }
 ```
 
-If you **already have a hooks.json**, add only the new matcher inside your existing `PreToolUse` array:
+If you **already have a settings.json**, add only the new matcher inside your existing `PreToolUse` array:
 
 ```json
 {
@@ -81,6 +83,8 @@ If you **already have a hooks.json**, add only the new matcher inside your exist
 
 ## How it works
 
+### Document conversion
+
 1. When Claude tries to read a file, the `PreToolUse` hook fires first
 2. The hook checks the file extension — if it's a supported format, it converts it to markdown using [markitdown](https://github.com/microsoft/markitdown)
 3. The converted markdown is cached in a `.cache/` folder next to the original file
@@ -88,6 +92,24 @@ If you **already have a hooks.json**, add only the new matcher inside your exist
 5. On subsequent reads, the cache is served instantly (until the original file changes)
 
 **First run** installs `markitdown` automatically if it isn't already on your system (via `pipx` or `pip --user`). No manual setup needed.
+
+### Large file indexing
+
+1. If a file (including a freshly converted `.md`) exceeds 300 lines, the hook blocks the full read
+2. It generates a structural index: every markdown heading with its line number
+3. The index is cached next to the source file
+4. Claude receives the index and uses `offset`/`limit` to fetch only the relevant section
+5. The cache is invalidated automatically when the file is modified
+
+Targeted reads (those that already specify `offset` or `limit`) always pass through — the hook only blocks unfiltered reads of large files.
+
+---
+
+## Migrating from an earlier version
+
+Earlier versions of this hook wrote to `.claude/hooks.json`. That file is **not read by Claude Code** — hooks must live in `.claude/settings.json`.
+
+If you installed the old version, run the installer again — it will patch `settings.json` correctly. You can safely delete any `.claude/hooks.json` file left over from the old install.
 
 ---
 

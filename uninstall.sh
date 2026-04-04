@@ -17,12 +17,12 @@ echo "================================"
 
 if [ "$GLOBAL" = true ]; then
     SCRIPTS_DIR="$HOME/.claude/scripts"
-    HOOKS_JSON="$HOME/.claude/hooks.json"
+    SETTINGS_JSON="$HOME/.claude/settings.json"
     HOOK_COMMAND="bash $HOME/.claude/scripts/md-convert.sh"
     echo "Mode: global"
 else
     SCRIPTS_DIR="$(pwd)/scripts"
-    HOOKS_JSON="$(pwd)/.claude/hooks.json"
+    SETTINGS_JSON="$(pwd)/.claude/settings.json"
     HOOK_COMMAND="bash scripts/md-convert.sh"
     echo "Mode: project ($(pwd))"
 fi
@@ -37,21 +37,21 @@ else
     echo "  md-convert.sh not found at $SCRIPTS_DIR — skipping"
 fi
 
-# --- Patch hooks.json ---
-if [ ! -f "$HOOKS_JSON" ]; then
-    echo "  hooks.json not found — nothing to patch"
+# --- Patch settings.json ---
+if [ ! -f "$SETTINGS_JSON" ]; then
+    echo "  settings.json not found — nothing to patch"
 else
     python3 - <<PYEOF
 import json, os
 
-hooks_path = "$HOOKS_JSON"
+settings_path = "$SETTINGS_JSON"
 hook_command = "$HOOK_COMMAND"
 
 try:
-    with open(hooks_path) as f:
+    with open(settings_path) as f:
         config = json.load(f)
 except Exception:
-    print("  Could not parse hooks.json — skipping")
+    print("  Could not parse settings.json — skipping")
     exit(0)
 
 pre = config.get("hooks", {}).get("PreToolUse", [])
@@ -68,17 +68,17 @@ for entry in pre:
 config["hooks"]["PreToolUse"] = [e for e in pre if e.get("hooks")]
 
 # Remove empty top-level keys
-if not config["hooks"]["PreToolUse"]:
+if not config["hooks"].get("PreToolUse"):
     del config["hooks"]["PreToolUse"]
 if not config.get("hooks"):
     del config["hooks"]
 
 if changed:
-    with open(hooks_path, "w") as f:
+    with open(settings_path, "w") as f:
         json.dump(config, f, indent=2)
-    print("✓ Removed hook from " + hooks_path)
+    print("✓ Removed hook from " + settings_path)
 else:
-    print("  Hook not found in hooks.json — nothing to remove")
+    print("  Hook not found in settings.json — nothing to remove")
 PYEOF
 fi
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # install.sh — claude-code-md-hook installer
-# Installs md-convert.sh and patches .claude/hooks.json
+# Installs md-convert.sh and patches .claude/settings.json
 #
 # Usage:
 #   Project-level (default):  bash install.sh
@@ -32,12 +32,14 @@ echo "=============================="
 if [ "$GLOBAL" = true ]; then
     TARGET_DIR="$HOME/.claude"
     SCRIPTS_DIR="$HOME/.claude/scripts"
-    HOOKS_JSON="$HOME/.claude/hooks.json"
+    SETTINGS_JSON="$HOME/.claude/settings.json"
+    HOOK_COMMAND="bash $HOME/.claude/scripts/md-convert.sh"
     echo "Mode: global (applies to all Claude Code projects)"
 else
     TARGET_DIR="$(pwd)"
     SCRIPTS_DIR="$(pwd)/scripts"
-    HOOKS_JSON="$(pwd)/.claude/hooks.json"
+    SETTINGS_JSON="$(pwd)/.claude/settings.json"
+    HOOK_COMMAND="bash scripts/md-convert.sh"
     echo "Mode: project (applies to current directory only)"
     echo "Directory: $TARGET_DIR"
 fi
@@ -55,35 +57,28 @@ if [ "${DOWNLOAD:-false}" = true ]; then
     rm -f "$HOOK_SCRIPT"
 fi
 
-# --- Determine hook command path ---
-if [ "$GLOBAL" = true ]; then
-    HOOK_COMMAND="bash $HOME/.claude/scripts/md-convert.sh"
-else
-    HOOK_COMMAND="bash scripts/md-convert.sh"
-fi
+# --- Patch settings.json ---
+mkdir -p "$(dirname "$SETTINGS_JSON")"
 
-# --- Patch hooks.json ---
-mkdir -p "$(dirname "$HOOKS_JSON")"
-
-# Use Python to safely merge — avoids clobbering existing hooks
+# Use Python to safely merge — avoids clobbering existing settings
 python3 - <<PYEOF
 import json, os, sys
 
-hooks_path = "$HOOKS_JSON"
+settings_path = "$SETTINGS_JSON"
 hook_command = "$HOOK_COMMAND"
 
 new_hook = {"type": "command", "command": hook_command}
 new_matcher = {"matcher": "Read", "hooks": [new_hook]}
 
 # Load existing config or start fresh
-if os.path.isfile(hooks_path):
+if os.path.isfile(settings_path):
     try:
-        with open(hooks_path) as f:
+        with open(settings_path) as f:
             config = json.load(f)
     except Exception:
-        print("  Warning: could not parse existing hooks.json — creating backup and starting fresh")
+        print("  Warning: could not parse existing settings.json — creating backup and starting fresh")
         import shutil
-        shutil.copy(hooks_path, hooks_path + ".bak")
+        shutil.copy(settings_path, settings_path + ".bak")
         config = {}
 else:
     config = {}
@@ -107,17 +102,17 @@ else:
     # No Read matcher yet — add one
     pre.append(new_matcher)
 
-with open(hooks_path, "w") as f:
+with open(settings_path, "w") as f:
     json.dump(config, f, indent=2)
 
-print("✓ Patched " + hooks_path)
+print("✓ Patched " + settings_path)
 PYEOF
 
 echo ""
 echo "Done! Restart Claude Code for the hook to take effect."
 echo ""
 echo "What it does:"
-echo "  When Claude reads a PDF, DOCX, XLSX, PPTX, or HTML file,"
-echo "  it automatically converts it to markdown first — saving tokens."
+echo "  • PDF/DOCX/XLSX/PPTX/HTML → auto-converted to markdown (10-20x token savings)"
+echo "  • Markdown files >300 lines → structural index served, targeted reads only"
 echo ""
 echo "To uninstall: bash uninstall.sh"
